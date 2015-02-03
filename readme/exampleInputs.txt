@@ -1,0 +1,22 @@
+
+EXAMPLE INPUTS
+
+You should be able to use the commands below to test your source files as you progress through the coursework.
+
+*****
+
+*Command for compiling for source files*
+
+sh compileJade.sh jadeCW/*.java
+
+*****
+
+*Some example commands to run the hospital allocation system*
+
+sh runJade.sh "hospital:jadeCW.HospitalAgent(3)" "patient1:jadeCW.PatientAgent(3 - 2 -)" "patient2:jadeCW.PatientAgent(1 2 -)" "patient3:jadeCW.PatientAgent(3 2 -)"
+
+sh runJade.sh "hospital:jadeCW.HospitalAgent(5)" "patient1:jadeCW.PatientAgent(3 4 - 1 2 -)" "patient2:jadeCW.PatientAgent(1 3 5 - 2 - 4 -)" "patient3:jadeCW.PatientAgent(1 - 2 - 3 - 4 - 5 -)" "patient4:jadeCW.PatientAgent()"
+
+sh runJade.sh "hospital:jadeCW.HospitalAgent(2)" "patient1:jadeCW.PatientAgent(1 - 2 -)" "patient2:jadeCW.PatientAgent(1 - 2 -)" "patient3:jadeCW.PatientAgent(1 - 2 -)"
+
+*****
