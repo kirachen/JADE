@@ -11,23 +11,29 @@ import jade.lang.acl.ACLMessage;
 public class RequestAppointment extends Behaviour {
 	private String serviceType = "allocate-appointments";
 	private AID[] hospitalAgents;
-	private PatientAgent agent = (PatientAgent) myAgent;
+	private PatientAgent patient = (PatientAgent) myAgent;
 
 	@Override
 	public void action() {
-		if (serviceExist() && !agent.hasAppointment()) {
+		if (serviceExists() && !patient.hasAppointment()) {
 			requestAppointment();
 			receiveResponse();
 		}
 	}
+	
+	@Override
+	public boolean done() {
+		return patient.hasAppointment();
+	}
 
 	private void receiveResponse() {
-		ACLMessage msg = agent.receive();
+		ACLMessage msg = patient.receive();
 		if (msg != null) {
 			if (msg.getPerformative() == ACLMessage.AGREE) {
-				String content = msg.getContent();
-				Integer appointment = Integer.valueOf(content);
-				agent.allocateAppointment(appointment);
+				String appointment = msg.getContent();
+				patient.allocateAppointment(appointment);
+				patient.setServiceProvider(msg.getSender());
+				System.out.println("patient" + patient.getName() + " has been allocated with an appointment " + appointment);
 			}
 		} else {
 			block();
@@ -35,20 +41,21 @@ public class RequestAppointment extends Behaviour {
 	}
 
 	private void requestAppointment() {
-		ACLMessage msg = new ACLMessage(ACLMessage.QUERY_IF);
+		ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
 		for (AID id : hospitalAgents) {
 			msg.addReceiver(id);
 		}
-		agent.send(msg);
+		patient.send(msg);
+		System.out.println("patient" + patient.getName() + " requests for available appointment");
 	}
 
-	private boolean serviceExist() {
+	private boolean serviceExists() {
 		DFAgentDescription template = new DFAgentDescription();
 		ServiceDescription sd = new ServiceDescription();
 		sd.setType(serviceType);
 		template.addServices(sd);
 		try {
-			DFAgentDescription[] results = DFService.search(agent, template);
+			DFAgentDescription[] results = DFService.search(patient, template);
 			if (results.length > 0) {
 				hospitalAgents = new AID[results.length];
 				for (int i = 0; i < results.length; i++) {
@@ -63,11 +70,4 @@ public class RequestAppointment extends Behaviour {
 		}
 		return false;
 	}
-
-	@Override
-	public boolean done() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
 }

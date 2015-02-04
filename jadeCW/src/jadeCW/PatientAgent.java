@@ -2,7 +2,6 @@ package jadeCW;
 
 import jade.core.AID;
 import jade.core.Agent;
-import jade.core.LifeCycle;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -17,8 +16,9 @@ import java.util.List;
 
 public class PatientAgent extends Agent {
 
-	private List<List<Integer>> preferenceList;
-	private Integer allocatedAppointment;
+	private AID serviceProvider;
+	private List<List<String>> preferenceList;
+	private String allocatedAppointment = "null";
 
 	protected void setup() {
 		final String serviceType = "allocate-appointments";
@@ -27,28 +27,42 @@ public class PatientAgent extends Agent {
 		if (arguments != null && arguments.length > 0) {
 			processPrefs(arguments);
 		}
+		
 		printPrefs();
 
 		subscribeService(serviceType);
 		addBehaviour(new RequestAppointment());
+		addBehaviour(new FindAppointmentOwner());
+	}
+	
+	protected void takeDown() {
+		System.out.println("patient" + this.getName() + ":Appointment" + allocatedAppointment);
+	}
+
+	protected void setServiceProvider(AID agent) {
+		serviceProvider = agent;
+	}
+	
+	protected AID getServiceProvider() {
+		return serviceProvider;
 	}
 	
 	protected boolean hasAppointment() {
-		return allocatedAppointment != 0;
+		return !allocatedAppointment.equals("null");
 	}
 	
-	protected void allocateAppointment(Integer appointment) {
+	protected void allocateAppointment(String appointment) {
 		allocatedAppointment = appointment;
 	}
 	
-	protected List<List<Integer>> getPreferenceList() {
+	protected List<List<String>> getPreferenceList() {
 		return preferenceList;
 	}
 
 	private void printPrefs() {
-		System.out.println("patient prefers: ");
-		for (List<Integer> level : preferenceList) {
-			for (Integer pref : level) {
+		System.out.println("patient" + this.getName() + "prefers: ");
+		for (List<String> level : preferenceList) {
+			for (String pref : level) {
 				System.out.println("Appointment" + pref);
 			}
 			if (preferenceList.indexOf(level) != (preferenceList.size() - 1)) {
@@ -65,14 +79,12 @@ public class PatientAgent extends Agent {
 		template.addServices(templateSd);
 
 		SearchConstraints sc = new SearchConstraints();
-		// We want to receive 10 results at most
-		sc.setMaxResults(new Long(10));
 		addBehaviour(new SubscriptionInitiator(this,
 				DFService.createSubscriptionMessage(this, getDefaultDF(),
 						template, sc)) {
 			protected void handleInform(ACLMessage inform) {
 				System.out.println("Agent " + getLocalName()
-						+ ": Notification received from DF");
+						+ ": Notification received from HospitalAgent");
 				try {
 					DFAgentDescription[] results = DFService
 							.decodeNotification(inform.getContent());
@@ -107,21 +119,37 @@ public class PatientAgent extends Agent {
 	}
 
 	private void processPrefs(Object[] arguments) {
-		preferenceList = new ArrayList<List<Integer>>();
+		preferenceList = new ArrayList<List<String>>();
 		int prefLevel = 0;
-		List<Integer> prefs = new ArrayList<Integer>();
+		List<String> prefs = new ArrayList<String>();
 		for (int i = 0; i < arguments.length; i++) {
 			String arg = (String) arguments[i];
 			Character pref = arg.charAt(0);
 			if (Character.isDigit(pref)) {
-				System.out.println(pref + " is digit");
-				System.out.println(Character.getNumericValue(pref));
-				prefs.add(Character.getNumericValue(pref));
+				prefs.add(pref.toString());
 			} else if (pref.equals('-')) {
 				preferenceList.add(prefLevel, prefs);
-				prefs = new ArrayList<Integer>();
+				prefs = new ArrayList<String>();
 				prefLevel++;
 			}
 		}
+	}
+
+	protected String getMorePreferedAppointment() {
+		if (allocatedAppointment.equals("null")) {
+			return String.valueOf(preferenceList.get(0).get(0));
+		} else {
+			Integer appointment = Integer.valueOf(allocatedAppointment);
+			int prefLevel = -1;
+			for (int i=0; i< preferenceList.size(); i++) {
+				if (preferenceList.get(i).contains(appointment)) {
+					prefLevel = i;
+				}
+			}
+			if (prefLevel > 0) {
+				return preferenceList.get(prefLevel-1).get(0);
+			}
+		}
+		return "null";
 	}
 }
