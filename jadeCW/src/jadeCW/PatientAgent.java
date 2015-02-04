@@ -2,6 +2,7 @@ package jadeCW;
 
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.LifeCycle;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -16,17 +17,47 @@ import java.util.List;
 
 public class PatientAgent extends Agent {
 
-	private ArrayList<List<Integer>> preferenceList;
+	private List<List<Integer>> preferenceList;
+	private Integer allocatedAppointment;
 
 	protected void setup() {
-		Object[] prefs;
 		final String serviceType = "allocate-appointments";
 
 		Object[] arguments = getArguments();
 		if (arguments != null && arguments.length > 0) {
 			processPrefs(arguments);
 		}
+		printPrefs();
 
+		subscribeService(serviceType);
+		addBehaviour(new RequestAppointment());
+	}
+	
+	protected boolean hasAppointment() {
+		return allocatedAppointment != 0;
+	}
+	
+	protected void allocateAppointment(Integer appointment) {
+		allocatedAppointment = appointment;
+	}
+	
+	protected List<List<Integer>> getPreferenceList() {
+		return preferenceList;
+	}
+
+	private void printPrefs() {
+		System.out.println("patient prefers: ");
+		for (List<Integer> level : preferenceList) {
+			for (Integer pref : level) {
+				System.out.println("Appointment" + pref);
+			}
+			if (preferenceList.indexOf(level) != (preferenceList.size() - 1)) {
+				System.out.println("Then");
+			}
+		}
+	}
+
+	private void subscribeService(final String serviceType) {
 		// Build the description used as template for the subscription
 		DFAgentDescription template = new DFAgentDescription();
 		ServiceDescription templateSd = new ServiceDescription();
@@ -36,7 +67,6 @@ public class PatientAgent extends Agent {
 		SearchConstraints sc = new SearchConstraints();
 		// We want to receive 10 results at most
 		sc.setMaxResults(new Long(10));
-
 		addBehaviour(new SubscriptionInitiator(this,
 				DFService.createSubscriptionMessage(this, getDefaultDF(),
 						template, sc)) {
@@ -58,8 +88,8 @@ public class PatientAgent extends Agent {
 								ServiceDescription sd = (ServiceDescription) it
 										.next();
 								if (sd.getType().equals(serviceType)) {
-									System.out
-											.println(serviceType + " service found:");
+									System.out.println(serviceType
+											+ " service found:");
 									System.out.println("- Service \""
 											+ sd.getName()
 											+ "\" provided by agent "
@@ -74,26 +104,24 @@ public class PatientAgent extends Agent {
 				}
 			}
 		});
-
-	}
-	
-	protected ArrayList<List<Integer>> getPreferences() {
-		return preferenceList;
 	}
 
 	private void processPrefs(Object[] arguments) {
+		preferenceList = new ArrayList<List<Integer>>();
 		int prefLevel = 0;
 		List<Integer> prefs = new ArrayList<Integer>();
 		for (int i = 0; i < arguments.length; i++) {
-			Character pref = (Character) arguments[i];
+			String arg = (String) arguments[i];
+			Character pref = arg.charAt(0);
 			if (Character.isDigit(pref)) {
-				prefs.add(Integer.valueOf(pref));
+				System.out.println(pref + " is digit");
+				System.out.println(Character.getNumericValue(pref));
+				prefs.add(Character.getNumericValue(pref));
 			} else if (pref.equals('-')) {
 				preferenceList.add(prefLevel, prefs);
-				prefs.clear();
+				prefs = new ArrayList<Integer>();
 				prefLevel++;
 			}
 		}
-
 	}
 }
