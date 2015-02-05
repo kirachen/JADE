@@ -1,37 +1,40 @@
 package jadeCW;
 
-import jade.core.AID;
 import jade.core.behaviours.Behaviour;
-import jade.domain.DFService;
-import jade.domain.FIPAException;
-import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 
 public class RequestAppointment extends Behaviour {
 	private PatientAgent patient;
+	private boolean waitingForResponse = false;
+	private boolean requested = false;
 
 	@Override
 	public void action() {
 		patient = (PatientAgent) myAgent;
 		if (patient.getServiceProvider() != null && !patient.hasAppointment()) {
-			requestAppointment();
-			receiveResponse();
+			if (!waitingForResponse) {
+				requestAppointment();
+				receiveResponse();
+			}
 		}
 	}
-	
+
 	@Override
 	public boolean done() {
-		return patient.hasAppointment();
+		return requested;
 	}
 
 	private void receiveResponse() {
 		ACLMessage msg = patient.receive();
 		if (msg != null) {
-			if (msg.getPerformative() == ACLMessage.AGREE) {
+			if (msg.getPerformative() == ACLMessage.AGREE && msg.getSender().equals(patient.getServiceProvider())) {
 				String appointment = msg.getContent();
 				patient.allocateAppointment(appointment);
-				System.out.println("patient " + patient.getName() + " has been allocated with an appointment " + appointment);
+				System.out.println(patient.getLocalName()
+						+ " has been allocated with an appointment "
+						+ appointment);
+				waitingForResponse = false;
+				requested = true;
 			}
 		} else {
 			block();
@@ -39,9 +42,11 @@ public class RequestAppointment extends Behaviour {
 	}
 
 	private void requestAppointment() {
+		waitingForResponse = true;
 		ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
 		msg.addReceiver(patient.getServiceProvider());
 		patient.send(msg);
-		System.out.println("patient " + patient.getName() + " requests for available appointment");
+		System.out.println(patient.getLocalName()
+				+ " requests for available appointment");
 	}
 }

@@ -6,23 +6,26 @@ import jade.lang.acl.ACLMessage;
 
 public class FindAppointmentOwner extends Behaviour {
 
-	PatientAgent patient = (PatientAgent) myAgent;
-	AID serviceProvider;
+	private PatientAgent patient;
+	private AID serviceProvider;
+	private boolean informed = false;
 
 	@Override
 	public void action() {
+		patient = (PatientAgent) myAgent;
 		serviceProvider = patient.getServiceProvider();
 		String preferedAppointment = patient.getMorePreferedAppointment();
 		if (!preferedAppointment.equals("null")) {
-			requestAppointment(preferedAppointment);
-			receiveResponse(preferedAppointment);
+			if (!informed) {
+				requestAppointment(preferedAppointment);
+				receiveResponse(preferedAppointment);
+			}
 		}
 	}
 
 	@Override
 	public boolean done() {
-		
-		return false;
+		return informed;
 	}
 
 	private void requestAppointment(String preferedAppointment) {
@@ -30,14 +33,15 @@ public class FindAppointmentOwner extends Behaviour {
 		msg.setContent(preferedAppointment);
 		msg.addReceiver(serviceProvider);
 		patient.send(msg);
-		System.out.println("patient" + patient.getName()
+		System.out.println(patient.getLocalName()
 				+ " requests for prefered appointment " + preferedAppointment);
 	}
 
 	private void receiveResponse(String preferedAppointment) {
 		ACLMessage msg = patient.receive();
 		if (msg != null) {
-			if (msg.getPerformative() == ACLMessage.INFORM) {
+			if (msg.getPerformative() == ACLMessage.INFORM && msg.getSender().equals(patient.getServiceProvider())) {
+				informed = true;
 				String owner = msg.getContent();
 				if (owner.equals("owner:null")) {
 					System.out.println("owner of appointment "
@@ -46,7 +50,7 @@ public class FindAppointmentOwner extends Behaviour {
 					System.out.println("appointment " + preferedAppointment
 							+ " is unknown");
 				} else {
-					System.out.println("patient" + owner
+					System.out.println(owner
 							+ " is the owner of appointment "
 							+ preferedAppointment);
 				}

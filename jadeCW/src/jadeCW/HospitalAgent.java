@@ -49,6 +49,7 @@ public class HospitalAgent extends Agent {
 		}
 		
 		addBehaviour(new AllocateAppointment());
+		addBehaviour(new RepondToQuery());
 	}
 	
 	protected void takeDown() {
@@ -79,6 +80,14 @@ public class HospitalAgent extends Agent {
 	protected void allocateAppointment(String availableAppointment, String patient) {
 		Integer index = Integer.valueOf(availableAppointment);
 		patientList.set(index-1, patient);
+	}
+	
+	protected String getOwner(String appointment) {
+		Integer index = Integer.valueOf(appointment);
+		if (index <= patientList.size() || index > 0) {
+			return patientList.get(index-1);
+		}
+		return "appointment:null";
 	}
 
 	private void initPatientList(int numberOfAppointments) {

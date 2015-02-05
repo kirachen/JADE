@@ -31,14 +31,14 @@ public class AllocateAppointment extends CyclicBehaviour {
 			reply.setPerformative(ACLMessage.AGREE);
 			reply.setContent(availableAppointment);
 			String patientName = msg.getSender()
-					.getName();
+					.getLocalName();
 			hospital.allocateAppointment(availableAppointment, patientName);
-			System.out.println("hospital " + hospital.getName()
+			System.out.println(hospital.getLocalName()
 					+ " has allocated appointment " + availableAppointment
 					+ " to " + patientName);
 		} else {
 			reply.setPerformative(ACLMessage.REFUSE);
-			System.out.println("hospital " + hospital.getName()
+			System.out.println(hospital.getLocalName()
 					+ " does not have any available appointment");
 		}
 		myAgent.send(reply);

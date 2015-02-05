@@ -17,7 +17,7 @@ import java.util.List;
 public class PatientAgent extends Agent {
 
 	private AID serviceProvider;
-	private List<List<String>> preferenceList;
+	private List<List<String>> preferenceList = new ArrayList<List<String>>();
 	private String allocatedAppointment = "null";
 
 	protected void setup() {
@@ -29,14 +29,13 @@ public class PatientAgent extends Agent {
 			printPrefs();
 		}
 		
-
 		subscribeService(serviceType);
 		addBehaviour(new RequestAppointment());
-		//addBehaviour(new FindAppointmentOwner());
+		addBehaviour(new FindAppointmentOwner());
 	}
 	
 	protected void takeDown() {
-		System.out.println("patient" + this.getName() + ":Appointment" + allocatedAppointment);
+		System.out.println(this.getLocalName() + ":Appointment" + allocatedAppointment);
 	}
 	
 	protected AID getServiceProvider() {
@@ -56,7 +55,7 @@ public class PatientAgent extends Agent {
 	}
 
 	private void printPrefs() {
-		System.out.println("patient " + this.getName() + " prefers: ");
+		System.out.println(this.getLocalName() + " prefers: ");
 		for (List<String> level : preferenceList) {
 			for (String pref : level) {
 				System.out.println("Appointment" + pref);
@@ -116,7 +115,6 @@ public class PatientAgent extends Agent {
 	}
 
 	private void processPrefs(Object[] arguments) {
-		preferenceList = new ArrayList<List<String>>();
 		int prefLevel = 0;
 		List<String> prefs = new ArrayList<String>();
 		for (int i = 0; i < arguments.length; i++) {
@@ -134,7 +132,9 @@ public class PatientAgent extends Agent {
 
 	protected String getMorePreferedAppointment() {
 		if (allocatedAppointment.equals("null")) {
-			return String.valueOf(preferenceList.get(0).get(0));
+			if (preferenceList.size() != 0) {
+				return String.valueOf(preferenceList.get(0).get(0));
+			}
 		} else {
 			Integer appointment = Integer.valueOf(allocatedAppointment);
 			int prefLevel = -1;
