@@ -26,21 +26,17 @@ public class PatientAgent extends Agent {
 		Object[] arguments = getArguments();
 		if (arguments != null && arguments.length > 0) {
 			processPrefs(arguments);
+			printPrefs();
 		}
 		
-		printPrefs();
 
 		subscribeService(serviceType);
 		addBehaviour(new RequestAppointment());
-		addBehaviour(new FindAppointmentOwner());
+		//addBehaviour(new FindAppointmentOwner());
 	}
 	
 	protected void takeDown() {
 		System.out.println("patient" + this.getName() + ":Appointment" + allocatedAppointment);
-	}
-
-	protected void setServiceProvider(AID agent) {
-		serviceProvider = agent;
 	}
 	
 	protected AID getServiceProvider() {
@@ -60,7 +56,7 @@ public class PatientAgent extends Agent {
 	}
 
 	private void printPrefs() {
-		System.out.println("patient" + this.getName() + "prefers: ");
+		System.out.println("patient " + this.getName() + " prefers: ");
 		for (List<String> level : preferenceList) {
 			for (String pref : level) {
 				System.out.println("Appointment" + pref);
@@ -106,6 +102,7 @@ public class PatientAgent extends Agent {
 											+ sd.getName()
 											+ "\" provided by agent "
 											+ provider.getName());
+									serviceProvider = provider;
 								}
 							}
 						}

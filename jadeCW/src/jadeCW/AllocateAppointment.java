@@ -7,10 +7,11 @@ import jade.lang.acl.ACLMessage;
 
 public class AllocateAppointment extends CyclicBehaviour {
 
-	HospitalAgent hospital = (HospitalAgent) myAgent;
+	HospitalAgent hospital;
 
 	@Override
 	public void action() {
+		hospital = (HospitalAgent) myAgent;
 		ACLMessage msg = hospital.receive();
 		if (msg != null) {
 			if (msg.getPerformative() == ACLMessage.REQUEST) {
@@ -32,12 +33,12 @@ public class AllocateAppointment extends CyclicBehaviour {
 			String patientName = msg.getSender()
 					.getName();
 			hospital.allocateAppointment(availableAppointment, patientName);
-			System.out.println("hospital" + hospital.getName()
+			System.out.println("hospital " + hospital.getName()
 					+ " has allocated appointment " + availableAppointment
 					+ " to " + patientName);
 		} else {
 			reply.setPerformative(ACLMessage.REFUSE);
-			System.out.println("hospital" + hospital.getName()
+			System.out.println("hospital " + hospital.getName()
 					+ " does not have any available appointment");
 		}
 		myAgent.send(reply);

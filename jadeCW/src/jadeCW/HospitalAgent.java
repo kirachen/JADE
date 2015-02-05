@@ -3,7 +3,9 @@ package jadeCW;
 import jade.core.Agent;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
+import jade.domain.FIPANames;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 
 import java.util.ArrayList;
@@ -35,7 +37,10 @@ public class HospitalAgent extends Agent {
 			ServiceDescription sd = new ServiceDescription();
 			sd.setName(serviceName);
 			sd.setType(serviceType);
-			sd.addLanguages("English");
+			// Agents that want to use this service need to "know" the weather-forecast-ontology
+	  		sd.addOntologies("allocate-appointment-ontology");
+			sd.addLanguages(FIPANames.ContentLanguage.FIPA_SL);
+			sd.addProperties(new Property("country", "UK"));
 			dfd.addServices(sd);
 
 			DFService.register(this, dfd);
@@ -54,7 +59,7 @@ public class HospitalAgent extends Agent {
 	
 	protected boolean hasAvailableAppointment() {
 		for (String appointment : patientList) {
-			if (!appointment.equals("null")) {
+			if (appointment.equals("null")) {
 				return true;
 			}
 		}
@@ -64,7 +69,7 @@ public class HospitalAgent extends Agent {
 	protected List<String> getAvailableAppointments() {
 		List<String> appointments = new ArrayList<String>();
 		for (int i=0; i<patientList.size(); i++) {
-			if (!patientList.get(i).equals("null")) {
+			if (patientList.get(i).equals("null")) {
 				appointments.add(String.valueOf(i+1));
 			}
 		}
@@ -73,7 +78,7 @@ public class HospitalAgent extends Agent {
 	
 	protected void allocateAppointment(String availableAppointment, String patient) {
 		Integer index = Integer.valueOf(availableAppointment);
-		patientList.set(index, patient);
+		patientList.set(index-1, patient);
 	}
 
 	private void initPatientList(int numberOfAppointments) {

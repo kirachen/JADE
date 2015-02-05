@@ -7,10 +7,11 @@ import jade.lang.acl.ACLMessage;
 public class FindAppointmentOwner extends Behaviour {
 
 	PatientAgent patient = (PatientAgent) myAgent;
-	AID serviceProvider = patient.getServiceProvider();
+	AID serviceProvider;
 
 	@Override
 	public void action() {
+		serviceProvider = patient.getServiceProvider();
 		String preferedAppointment = patient.getMorePreferedAppointment();
 		if (!preferedAppointment.equals("null")) {
 			requestAppointment(preferedAppointment);

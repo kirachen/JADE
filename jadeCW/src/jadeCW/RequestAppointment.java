@@ -9,13 +9,12 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 
 public class RequestAppointment extends Behaviour {
-	private String serviceType = "allocate-appointments";
-	private AID[] hospitalAgents;
-	private PatientAgent patient = (PatientAgent) myAgent;
+	private PatientAgent patient;
 
 	@Override
 	public void action() {
-		if (serviceExists() && !patient.hasAppointment()) {
+		patient = (PatientAgent) myAgent;
+		if (patient.getServiceProvider() != null && !patient.hasAppointment()) {
 			requestAppointment();
 			receiveResponse();
 		}
@@ -32,8 +31,7 @@ public class RequestAppointment extends Behaviour {
 			if (msg.getPerformative() == ACLMessage.AGREE) {
 				String appointment = msg.getContent();
 				patient.allocateAppointment(appointment);
-				patient.setServiceProvider(msg.getSender());
-				System.out.println("patient" + patient.getName() + " has been allocated with an appointment " + appointment);
+				System.out.println("patient " + patient.getName() + " has been allocated with an appointment " + appointment);
 			}
 		} else {
 			block();
@@ -42,32 +40,8 @@ public class RequestAppointment extends Behaviour {
 
 	private void requestAppointment() {
 		ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-		for (AID id : hospitalAgents) {
-			msg.addReceiver(id);
-		}
+		msg.addReceiver(patient.getServiceProvider());
 		patient.send(msg);
-		System.out.println("patient" + patient.getName() + " requests for available appointment");
-	}
-
-	private boolean serviceExists() {
-		DFAgentDescription template = new DFAgentDescription();
-		ServiceDescription sd = new ServiceDescription();
-		sd.setType(serviceType);
-		template.addServices(sd);
-		try {
-			DFAgentDescription[] results = DFService.search(patient, template);
-			if (results.length > 0) {
-				hospitalAgents = new AID[results.length];
-				for (int i = 0; i < results.length; i++) {
-					hospitalAgents[i] = results[i].getName();
-					System.out.println(serviceType + " service found:");
-					System.out.println("- Service \"" + sd.getName());
-				}
-				return true;
-			}
-		} catch (FIPAException fe) {
-			fe.printStackTrace();
-		}
-		return false;
+		System.out.println("patient " + patient.getName() + " requests for available appointment");
 	}
 }
