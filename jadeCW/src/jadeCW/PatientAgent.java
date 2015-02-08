@@ -12,12 +12,15 @@ import jade.proto.SubscriptionInitiator;
 import jade.util.leap.Iterator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PatientAgent extends Agent {
 
 	private AID serviceProvider;
 	private List<List<String>> preferenceList = new ArrayList<List<String>>();
+	private Map<AID, String> ownerOfPreferedApmnt = new HashMap<AID, String>();
 	private String allocatedAppointment = "null";
 
 	protected void setup() {
@@ -52,6 +55,10 @@ public class PatientAgent extends Agent {
 	
 	protected List<List<String>> getPreferenceList() {
 		return preferenceList;
+	}
+	
+	protected void setOwnerofPreferedApmnt(AID owner, String apmnt) {
+		ownerOfPreferedApmnt.put(owner, apmnt);
 	}
 
 	private void printPrefs() {

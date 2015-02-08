@@ -43,6 +43,7 @@ public class FindAppointmentOwner extends Behaviour {
 			if (msg.getPerformative() == ACLMessage.INFORM && msg.getSender().equals(patient.getServiceProvider())) {
 				informed = true;
 				String owner = msg.getContent();
+				//patient.setOwnerofPreferedApmnt(preferedAppointment);
 				if (owner.equals("owner:null")) {
 					System.out.println("owner of appointment "
 							+ preferedAppointment + " is not known");
