@@ -20,8 +20,8 @@ public class PatientAgent extends Agent {
 
 	private AID serviceProvider;
 	private List<List<String>> preferenceList = new ArrayList<List<String>>();
-	private Map<AID, String> ownerOfPreferedApmnt = new HashMap<AID, String>();
 	private String allocatedAppointment = "null";
+	private AID preferedAppointmentOwner;
 
 	protected void setup() {
 		final String serviceType = "allocate-appointments";
@@ -31,34 +31,35 @@ public class PatientAgent extends Agent {
 			processPrefs(arguments);
 			printPrefs();
 		}
-		
+
 		subscribeService(serviceType);
 		addBehaviour(new RequestAppointment());
 		addBehaviour(new FindAppointmentOwner());
 	}
-	
+
 	protected void takeDown() {
-		System.out.println(this.getLocalName() + ":Appointment" + allocatedAppointment);
+		System.out.println(this.getLocalName() + ":Appointment"
+				+ allocatedAppointment);
 	}
-	
+
 	protected AID getServiceProvider() {
 		return serviceProvider;
 	}
-	
+
 	protected boolean hasAppointment() {
 		return !allocatedAppointment.equals("null");
 	}
-	
+
 	protected void allocateAppointment(String appointment) {
 		allocatedAppointment = appointment;
 	}
-	
+
+	protected String getAllocatedAppointment() {
+		return allocatedAppointment;
+	}
+
 	protected List<List<String>> getPreferenceList() {
 		return preferenceList;
-	}
-	
-	protected void setOwnerofPreferedApmnt(AID owner, String apmnt) {
-		ownerOfPreferedApmnt.put(owner, apmnt);
 	}
 
 	private void printPrefs() {
@@ -143,17 +144,42 @@ public class PatientAgent extends Agent {
 				return String.valueOf(preferenceList.get(0).get(0));
 			}
 		} else {
-			Integer appointment = Integer.valueOf(allocatedAppointment);
-			int prefLevel = -1;
-			for (int i=0; i< preferenceList.size(); i++) {
-				if (preferenceList.get(i).contains(appointment)) {
-					prefLevel = i;
-				}
-			}
+			int prefLevel = getPreferenceLevel(allocatedAppointment);
 			if (prefLevel > 0) {
-				return preferenceList.get(prefLevel-1).get(0);
+				return preferenceList.get(prefLevel - 1).get(0);
 			}
 		}
 		return "null";
+	}
+
+	// Check if the appointment given is more preferred or at least as preferred
+	// to the allocated appointment
+	protected boolean isMorePrefered(String appointment) {
+		int prefLevel = getPreferenceLevel(appointment);
+		int allocPrefLevel = getPreferenceLevel(allocatedAppointment);
+		if (prefLevel > 0) {
+			if (prefLevel <= allocPrefLevel) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private int getPreferenceLevel(String appointment) {
+		int prefLevel = -1;
+		for (int i = 0; i < preferenceList.size(); i++) {
+			if (preferenceList.get(i).contains(appointment)) {
+				prefLevel = i;
+			}
+		}
+		return prefLevel;
+	}
+
+	protected void setPreferedAppointmentOwner(AID owner) {
+		this.preferedAppointmentOwner = owner;
+	}
+
+	protected AID getPreferedAppointmentOwner() {
+		return preferedAppointmentOwner;
 	}
 }

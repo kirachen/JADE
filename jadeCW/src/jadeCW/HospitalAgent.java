@@ -1,5 +1,6 @@
 package jadeCW;
 
+import jade.core.AID;
 import jade.core.Agent;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
@@ -13,10 +14,9 @@ import java.util.List;
 
 public class HospitalAgent extends Agent {
 	
-	private List<String> patientList;
+	private AID[] patientList;
 	
 	protected void setup() {
-		patientList = new ArrayList<String>();
 		int numberOfAppointments = 0;
 		String serviceName = "hospital agent";
 		String serviceType = "allocate-appointments";
@@ -27,7 +27,7 @@ public class HospitalAgent extends Agent {
 			String appointments = (String) arguments[0];
 			numberOfAppointments = Integer.valueOf(appointments);
 		}
-		initPatientList(numberOfAppointments);
+		patientList = new AID[numberOfAppointments];
 		// Register the service
 		System.out.println("Agent " + getName()
 				+ " registering service of type " + serviceType);
@@ -53,13 +53,13 @@ public class HospitalAgent extends Agent {
 	}
 	
 	protected void takeDown() {
-		for(int i=0; i< patientList.size(); i++) {
-			System.out.println("hospital1:" + "Appointment" + (i+1) + ":" + patientList.get(i));
+		for(int i=0; i< patientList.length; i++) {
+			System.out.println("hospital1:" + "Appointment" + (i+1) + ":" + patientList[i]);
 		}
 	}
 	
 	protected boolean hasAvailableAppointment() {
-		for (String appointment : patientList) {
+		for (AID appointment : patientList) {
 			if (appointment.equals("null")) {
 				return true;
 			}
@@ -69,30 +69,28 @@ public class HospitalAgent extends Agent {
 	
 	protected List<String> getAvailableAppointments() {
 		List<String> appointments = new ArrayList<String>();
-		for (int i=0; i<patientList.size(); i++) {
-			if (patientList.get(i).equals("null")) {
+		for (int i=0; i<patientList.length; i++) {
+			if (patientList[i] == null) {
 				appointments.add(String.valueOf(i+1));
 			}
 		}
 		return appointments;
 	}
 	
-	protected void allocateAppointment(String availableAppointment, String patient) {
+	protected void allocateAppointment(String availableAppointment, AID patient) {
 		Integer index = Integer.valueOf(availableAppointment);
-		patientList.set(index-1, patient);
+		patientList[index-1] = patient;
 	}
 	
-	protected String getOwner(String appointment) {
+	protected AID getOwner(String appointment) {
 		Integer index = Integer.valueOf(appointment);
-		if (index <= patientList.size() || index > 0) {
-			return patientList.get(index-1);
+		if (index <= patientList.length || index > 0) {
+			if (patientList[index-1] != null) {
+				return patientList[index-1];
+			} else {
+				return this.getAID();
+			}
 		}
-		return "appointment:null";
-	}
-
-	private void initPatientList(int numberOfAppointments) {
-		for(int i=0; i< numberOfAppointments; i++) {
-			patientList.add(i, "null");
-		}
+		return null;
 	}
 }

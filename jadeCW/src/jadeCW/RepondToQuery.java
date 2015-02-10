@@ -1,5 +1,8 @@
 package jadeCW;
 
+import java.io.IOException;
+
+import jade.core.AID;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 
@@ -14,24 +17,26 @@ public class RepondToQuery extends CyclicBehaviour{
 		ACLMessage msg = hospital.receive();
 		if (msg != null) {
 			if (msg.getPerformative() == ACLMessage.QUERY_IF) {
-				processQuery(msg);
+				try {
+					processQuery(msg);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		} else {
 			block();
 		}
 	}
 
-	private void processQuery(ACLMessage msg) {
+	private void processQuery(ACLMessage msg) throws IOException {
 		ACLMessage reply = msg.createReply();
 		reply.setPerformative(ACLMessage.INFORM);
 		String appointment = msg.getContent();
-		String owner = hospital.getOwner(appointment);
-		if (owner.equals("null")) {
-			reply.setContent("owner:null");
-		} else if (owner.equals("appointment:null")) {
-			reply.setContent("appointment:null");
+		AID owner = hospital.getOwner(appointment);
+		if (owner == null) {
+			reply.setContent("appointment unknown");
 		} else {
-			reply.setContent(owner);
+			reply.setContentObject(owner);
 		}
 		hospital.send(reply);
 	}

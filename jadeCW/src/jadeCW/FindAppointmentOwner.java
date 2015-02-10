@@ -3,6 +3,7 @@ package jadeCW;
 import jade.core.AID;
 import jade.core.behaviours.Behaviour;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
 
 public class FindAppointmentOwner extends Behaviour {
 
@@ -18,7 +19,11 @@ public class FindAppointmentOwner extends Behaviour {
 		if (!preferedAppointment.equals("null")) {
 			if (!informed) {
 				requestAppointment(preferedAppointment);
-				receiveResponse(preferedAppointment);
+				try {
+					receiveResponse(preferedAppointment);
+				} catch (UnreadableException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}
@@ -37,21 +42,19 @@ public class FindAppointmentOwner extends Behaviour {
 				+ " requests for prefered appointment " + preferedAppointment);
 	}
 
-	private void receiveResponse(String preferedAppointment) {
+	private void receiveResponse(String preferedAppointment)
+			throws UnreadableException {
 		ACLMessage msg = patient.receive();
 		if (msg != null) {
-			if (msg.getPerformative() == ACLMessage.INFORM && msg.getSender().equals(patient.getServiceProvider())) {
+			if (msg.getPerformative() == ACLMessage.INFORM
+					&& msg.getSender().equals(patient.getServiceProvider())) {
 				informed = true;
-				String owner = msg.getContent();
-				//patient.setOwnerofPreferedApmnt(preferedAppointment);
-				if (owner.equals("owner:null")) {
-					System.out.println("owner of appointment "
-							+ preferedAppointment + " is not known");
-				} else if (owner.equals("appointment:null")) {
-					System.out.println("appointment " + preferedAppointment
-							+ " is unknown");
+				AID owner = (AID) msg.getContentObject();
+				if (!msg.getContent().isEmpty()) {
+					System.out.println(msg.getContent());
 				} else {
-					System.out.println(owner
+					patient.setPreferedAppointmentOwner(owner);
+					System.out.println(owner.getLocalName()
 							+ " is the owner of appointment "
 							+ preferedAppointment);
 				}

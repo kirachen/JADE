@@ -2,6 +2,7 @@ package jadeCW;
 
 import java.util.List;
 
+import jade.core.AID;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 
@@ -30,12 +31,11 @@ public class AllocateAppointment extends CyclicBehaviour {
 			String availableAppointment = availableAppointments.get(0);
 			reply.setPerformative(ACLMessage.AGREE);
 			reply.setContent(availableAppointment);
-			String patientName = msg.getSender()
-					.getLocalName();
-			hospital.allocateAppointment(availableAppointment, patientName);
+			AID patient = msg.getSender();
+			hospital.allocateAppointment(availableAppointment, patient);
 			System.out.println(hospital.getLocalName()
 					+ " has allocated appointment " + availableAppointment
-					+ " to " + patientName);
+					+ " to " + patient);
 		} else {
 			reply.setPerformative(ACLMessage.REFUSE);
 			System.out.println(hospital.getLocalName()
