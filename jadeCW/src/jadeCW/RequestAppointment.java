@@ -7,10 +7,13 @@ public class RequestAppointment extends Behaviour {
 	private PatientAgent patient;
 	private boolean waitingForResponse = false;
 	private boolean requested = false;
+	
+	public RequestAppointment() {
+		patient = (PatientAgent) myAgent;
+	}
 
 	@Override
 	public void action() {
-		patient = (PatientAgent) myAgent;
 		if (patient.getServiceProvider() != null && !patient.hasAppointment()) {
 			if (!waitingForResponse) {
 				requestAppointment();

@@ -10,13 +10,16 @@ public class FindAppointmentOwner extends Behaviour {
 	private PatientAgent patient;
 	private AID serviceProvider;
 	private boolean informed = false;
+	
+	public FindAppointmentOwner() {
+		patient = (PatientAgent) myAgent;
+		serviceProvider = patient.getServiceProvider();
+	}
 
 	@Override
 	public void action() {
-		patient = (PatientAgent) myAgent;
-		serviceProvider = patient.getServiceProvider();
 		String preferedAppointment = patient.getMorePreferedAppointment();
-		if (!preferedAppointment.equals("null")) {
+		if (preferedAppointment != null) {
 			if (!informed) {
 				requestAppointment(preferedAppointment);
 				try {

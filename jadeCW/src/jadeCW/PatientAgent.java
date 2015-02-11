@@ -62,16 +62,39 @@ public class PatientAgent extends Agent {
 		return preferenceList;
 	}
 
-	private void printPrefs() {
-		System.out.println(this.getLocalName() + " prefers: ");
-		for (List<String> level : preferenceList) {
-			for (String pref : level) {
-				System.out.println("Appointment" + pref);
+	protected String getMorePreferedAppointment() {
+		if (allocatedAppointment.equals("null")) {
+			if (preferenceList.size() != 0) {
+				return String.valueOf(preferenceList.get(0).get(0));
 			}
-			if (preferenceList.indexOf(level) != (preferenceList.size() - 1)) {
-				System.out.println("Then");
+		} else {
+			int prefLevel = getPreferenceLevel(allocatedAppointment);
+			if (prefLevel > 0) {
+				return preferenceList.get(prefLevel - 1).get(0);
 			}
 		}
+		return null;
+	}
+
+	// Check if the appointment given is more preferred or at least as preferred
+	// to the allocated appointment
+	protected boolean isMorePrefered(String appointment) {
+		int prefLevel = getPreferenceLevel(appointment);
+		int allocPrefLevel = getPreferenceLevel(allocatedAppointment);
+		if (prefLevel > 0) {
+			if (prefLevel <= allocPrefLevel) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	protected void setPreferedAppointmentOwner(AID owner) {
+		this.preferedAppointmentOwner = owner;
+	}
+
+	protected AID getPreferedAppointmentOwner() {
+		return preferedAppointmentOwner;
 	}
 
 	private void subscribeService(final String serviceType) {
@@ -80,7 +103,7 @@ public class PatientAgent extends Agent {
 		ServiceDescription templateSd = new ServiceDescription();
 		templateSd.setType(serviceType);
 		template.addServices(templateSd);
-
+	
 		SearchConstraints sc = new SearchConstraints();
 		addBehaviour(new SubscriptionInitiator(this,
 				DFService.createSubscriptionMessage(this, getDefaultDF(),
@@ -138,31 +161,16 @@ public class PatientAgent extends Agent {
 		}
 	}
 
-	protected String getMorePreferedAppointment() {
-		if (allocatedAppointment.equals("null")) {
-			if (preferenceList.size() != 0) {
-				return String.valueOf(preferenceList.get(0).get(0));
+	private void printPrefs() {
+		System.out.println(this.getLocalName() + " prefers: ");
+		for (List<String> level : preferenceList) {
+			for (String pref : level) {
+				System.out.println("Appointment" + pref);
 			}
-		} else {
-			int prefLevel = getPreferenceLevel(allocatedAppointment);
-			if (prefLevel > 0) {
-				return preferenceList.get(prefLevel - 1).get(0);
-			}
-		}
-		return "null";
-	}
-
-	// Check if the appointment given is more preferred or at least as preferred
-	// to the allocated appointment
-	protected boolean isMorePrefered(String appointment) {
-		int prefLevel = getPreferenceLevel(appointment);
-		int allocPrefLevel = getPreferenceLevel(allocatedAppointment);
-		if (prefLevel > 0) {
-			if (prefLevel <= allocPrefLevel) {
-				return true;
+			if (preferenceList.indexOf(level) != (preferenceList.size() - 1)) {
+				System.out.println("Then");
 			}
 		}
-		return false;
 	}
 
 	private int getPreferenceLevel(String appointment) {
@@ -173,13 +181,5 @@ public class PatientAgent extends Agent {
 			}
 		}
 		return prefLevel;
-	}
-
-	protected void setPreferedAppointmentOwner(AID owner) {
-		this.preferedAppointmentOwner = owner;
-	}
-
-	protected AID getPreferedAppointmentOwner() {
-		return preferedAppointmentOwner;
 	}
 }

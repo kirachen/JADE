@@ -24,8 +24,16 @@ public class RespondToProposal1 extends CyclicBehaviour {
 				if (patient.isMorePrefered(proposedAppointment)) {
 					reply.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
 					reply.setContent(patient.getAllocatedAppointment());
+					System.out.println(patient.getLocalName()
+							+ " accepting proposal for swapping with "
+							+ proposal.getSender().getLocalName()
+							+ " for appointment " + proposedAppointment);
 				} else {
 					reply.setPerformative(ACLMessage.REJECT_PROPOSAL);
+					System.out.println(patient.getLocalName()
+							+ " rejecting proposal for swapping with "
+							+ proposal.getSender().getLocalName()
+							+ " for appointment " + proposedAppointment);
 				}
 				patient.send(reply);
 				patient.allocateAppointment(proposedAppointment);
@@ -37,11 +45,14 @@ public class RespondToProposal1 extends CyclicBehaviour {
 			}
 		}
 	}
-	
-	private void informHospital(AID preferedAppointmentOwner) throws IOException {
+
+	private void informHospital(AID preferedAppointmentOwner)
+			throws IOException {
 		ACLMessage info = new ACLMessage(ACLMessage.INFORM);
 		info.setContentObject(preferedAppointmentOwner);
 		info.addReceiver(patient.getServiceProvider());
+		System.out.println(patient.getLocalName() + " informing hospital for swapping");
+		patient.send(info);
 	}
 
 }

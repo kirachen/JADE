@@ -23,10 +23,19 @@ public class RespondToProposal2 extends CyclicBehaviour {
 				if (hospital.getAvailableAppointments().contains(
 						proposedAppointment)) {
 					reply.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+					System.out.println(hospital.getLocalName()
+							+ " accepting proposal for changing appointment "
+							+ proposedAppointment + " for"
+							+ patient.getLocalName());
 					hospital.allocateAppointment(proposedAppointment, patient);
 				} else {
 					reply.setPerformative(ACLMessage.REJECT_PROPOSAL);
+					System.out.println(hospital.getLocalName()
+							+ " rejecting proposal for changing appointment "
+							+ proposedAppointment + " for"
+							+ patient.getLocalName());
 				}
+				hospital.send(reply);
 			}
 		}
 

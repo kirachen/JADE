@@ -10,6 +10,7 @@ import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class HospitalAgent extends Agent {
@@ -92,5 +93,13 @@ public class HospitalAgent extends Agent {
 			}
 		}
 		return null;
+	}
+
+	protected void swap(AID patient, AID swappingWithPatient) {
+		List<AID> list = Arrays.asList(patientList);
+		int appointment1 = list.indexOf(patient);
+		int appointment2 = list.indexOf(swappingWithPatient);
+		patientList[appointment1] = swappingWithPatient;
+		patientList[appointment2] = patient;
 	}
 }

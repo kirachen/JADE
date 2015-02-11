@@ -23,10 +23,10 @@ public class ProposeSwap extends Behaviour {
 			ACLMessage proposal = new ACLMessage(ACLMessage.PROPOSE);
 			proposal.setContent(patient.getAllocatedAppointment());
 			proposal.addReceiver(preferedAppointmentOwner);
-			patient.send(proposal);
 			System.out.println(patient.getLocalName()
 					+ " propose a swap for prefered appointment with "
 					+ preferedAppointmentOwner.getLocalName());
+			patient.send(proposal);
 		}
 		if (response != null) {
 			if (response.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
@@ -54,5 +54,7 @@ public class ProposeSwap extends Behaviour {
 		ACLMessage info = new ACLMessage(ACLMessage.INFORM);
 		info.setContentObject(preferedAppointmentOwner);
 		info.addReceiver(patient.getServiceProvider());
+		System.out.println(patient.getLocalName() + " informing hospital for swapping");
+		patient.send(info);
 	}
 }

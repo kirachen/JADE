@@ -9,10 +9,13 @@ import jade.lang.acl.ACLMessage;
 public class RepondToQuery extends CyclicBehaviour{
 
 	private HospitalAgent hospital;
+	
+	public RepondToQuery() {
+		hospital = (HospitalAgent) myAgent;
+	}
 
 	@Override
 	public void action() {
-		hospital = (HospitalAgent) myAgent;
 		
 		ACLMessage msg = hospital.receive();
 		if (msg != null) {

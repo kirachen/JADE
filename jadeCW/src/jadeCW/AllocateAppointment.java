@@ -9,10 +9,13 @@ import jade.lang.acl.ACLMessage;
 public class AllocateAppointment extends CyclicBehaviour {
 
 	HospitalAgent hospital;
+	
+	public AllocateAppointment() {
+		hospital = (HospitalAgent) myAgent;
+	}
 
 	@Override
 	public void action() {
-		hospital = (HospitalAgent) myAgent;
 		ACLMessage msg = hospital.receive();
 		if (msg != null) {
 			if (msg.getPerformative() == ACLMessage.REQUEST) {
