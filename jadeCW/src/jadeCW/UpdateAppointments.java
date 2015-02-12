@@ -1,6 +1,8 @@
 package jadeCW;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import jade.core.AID;
@@ -11,15 +13,11 @@ import jade.lang.acl.UnreadableException;
 public class UpdateAppointments extends CyclicBehaviour {
 
 	private HospitalAgent hospital;
-	private List<Tuple> swappingPatients;
-
-	public UpdateAppointments() {
-		hospital = (HospitalAgent) myAgent;
-		swappingPatients = new ArrayList<Tuple>();
-	}
+	private List<Tuple> swappingPatients = new ArrayList<Tuple>();
 
 	@Override
 	public void action() {
+		hospital = (HospitalAgent) myAgent;
 		ACLMessage update = hospital.receive();
 		if (update != null) {
 			if (update.getPerformative() == ACLMessage.INFORM) {
@@ -30,6 +28,7 @@ public class UpdateAppointments extends CyclicBehaviour {
 					Tuple swap = new Tuple(patient, swappingWithPatient);
 					if (confirmedByFirstPatient(swap)) {
 						hospital.swap(patient, swappingWithPatient);
+						broadCastUpdate();
 					} else {
 						swappingPatients.add(swap);
 					}
@@ -38,6 +37,21 @@ public class UpdateAppointments extends CyclicBehaviour {
 				}
 			}
 		}
+	}
+
+	private void broadCastUpdate() {
+		ArrayList<AID> patientList = (ArrayList<AID>) Arrays.asList(hospital.getPatientList());
+		ACLMessage broadcastMsg = new ACLMessage(ACLMessage.INFORM_REF);
+		try {
+			broadcastMsg.setContentObject(patientList);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		List<AID> patients = hospital.getPatients();
+		for (AID patient : patients) {
+			broadcastMsg.addReceiver(patient);
+		}
+		hospital.send(broadcastMsg);
 	}
 
 	private boolean confirmedByFirstPatient(Tuple swap) {

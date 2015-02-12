@@ -14,9 +14,9 @@ import java.util.Arrays;
 import java.util.List;
 
 public class HospitalAgent extends Agent {
-	
+
 	private AID[] patientList;
-	
+
 	protected void setup() {
 		int numberOfAppointments = 0;
 		String serviceName = "hospital agent";
@@ -38,8 +38,9 @@ public class HospitalAgent extends Agent {
 			ServiceDescription sd = new ServiceDescription();
 			sd.setName(serviceName);
 			sd.setType(serviceType);
-			// Agents that want to use this service need to "know" the weather-forecast-ontology
-	  		sd.addOntologies("allocate-appointment-ontology");
+			// Agents that want to use this service need to "know" the
+			// weather-forecast-ontology
+			sd.addOntologies("allocate-appointment-ontology");
 			sd.addLanguages(FIPANames.ContentLanguage.FIPA_SL);
 			sd.addProperties(new Property("country", "UK"));
 			dfd.addServices(sd);
@@ -48,46 +49,69 @@ public class HospitalAgent extends Agent {
 		} catch (FIPAException fe) {
 			fe.printStackTrace();
 		}
-		
+
 		addBehaviour(new AllocateAppointment());
 		addBehaviour(new RepondToQuery());
+		addBehaviour(new RespondToProposal2());
+		addBehaviour(new UpdateAppointments());
 	}
-	
+
 	protected void takeDown() {
-		for(int i=0; i< patientList.length; i++) {
-			System.out.println("hospital1:" + "Appointment" + (i+1) + ":" + patientList[i]);
+		for (int i = 0; i < patientList.length; i++) {
+			AID patient = patientList[i];
+			if (patient != null) {
+				System.out.println(this.getLocalName() + ":Appointment"
+						+ (i + 1) + ":" + patient.getLocalName());
+			} else {
+				System.out.println(this.getLocalName() + ":Appointment"
+						+ (i + 1) + ":null");
+			}
 		}
 	}
+
+	protected synchronized AID[] getPatientList() {
+		return patientList;
+	}
 	
-	protected boolean hasAvailableAppointment() {
+	protected synchronized List<AID> getPatients() {
+		List<AID> patients = new ArrayList<AID>();
+		for (AID id : patientList) {
+			if (id != null) {
+				patients.add(id);
+			}
+		}
+		return patients;
+	}
+	
+	protected synchronized boolean hasAvailableAppointment() {
 		for (AID appointment : patientList) {
-			if (appointment.equals("null")) {
+			if (appointment == null) {
 				return true;
 			}
 		}
 		return false;
 	}
-	
-	protected List<String> getAvailableAppointments() {
+
+	protected synchronized List<String> getAvailableAppointments() {
 		List<String> appointments = new ArrayList<String>();
-		for (int i=0; i<patientList.length; i++) {
+		for (int i = 0; i < patientList.length; i++) {
 			if (patientList[i] == null) {
-				appointments.add(String.valueOf(i+1));
+				appointments.add(String.valueOf(i + 1));
 			}
 		}
 		return appointments;
 	}
-	
-	protected void allocateAppointment(String availableAppointment, AID patient) {
+
+	protected synchronized void allocateAppointment(String availableAppointment, AID patient) {
 		Integer index = Integer.valueOf(availableAppointment);
-		patientList[index-1] = patient;
+		patientList[index - 1] = patient;
 	}
-	
-	protected AID getOwner(String appointment) {
+
+	protected synchronized AID getOwner(String appointment) {
 		Integer index = Integer.valueOf(appointment);
 		if (index <= patientList.length || index > 0) {
-			if (patientList[index-1] != null) {
-				return patientList[index-1];
+			if (patientList[index - 1] != null) {
+				return patientList[index - 1];
 			} else {
 				return this.getAID();
 			}
@@ -95,7 +119,7 @@ public class HospitalAgent extends Agent {
 		return null;
 	}
 
-	protected void swap(AID patient, AID swappingWithPatient) {
+	protected synchronized void swap(AID patient, AID swappingWithPatient) {
 		List<AID> list = Arrays.asList(patientList);
 		int appointment1 = list.indexOf(patient);
 		int appointment2 = list.indexOf(swappingWithPatient);

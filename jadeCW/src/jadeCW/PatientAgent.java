@@ -35,11 +35,20 @@ public class PatientAgent extends Agent {
 		subscribeService(serviceType);
 		addBehaviour(new RequestAppointment());
 		addBehaviour(new FindAppointmentOwner());
+		ProposeSwap proposeSwap = new ProposeSwap();
+		addBehaviour(proposeSwap);
+		addBehaviour(new RespondToProposal1());
+		addBehaviour(new RespondToUpdate(proposeSwap));
 	}
 
 	protected void takeDown() {
-		System.out.println(this.getLocalName() + ":Appointment"
+		System.out.println(this.getLocalName() + ":Appointment "
 				+ allocatedAppointment);
+	}
+
+	protected String getPatientState() {
+		return this.getLocalName() + "[appointment:" + allocatedAppointment
+				+ "]";
 	}
 
 	protected AID getServiceProvider() {
@@ -65,12 +74,14 @@ public class PatientAgent extends Agent {
 	protected String getMorePreferedAppointment() {
 		if (allocatedAppointment.equals("null")) {
 			if (preferenceList.size() != 0) {
-				return String.valueOf(preferenceList.get(0).get(0));
+				return preferenceList.get(0).get(0);
 			}
 		} else {
 			int prefLevel = getPreferenceLevel(allocatedAppointment);
 			if (prefLevel > 0) {
 				return preferenceList.get(prefLevel - 1).get(0);
+			} else if (prefLevel < 0) {
+				return preferenceList.get(0).get(0);
 			}
 		}
 		return null;
@@ -81,7 +92,7 @@ public class PatientAgent extends Agent {
 	protected boolean isMorePrefered(String appointment) {
 		int prefLevel = getPreferenceLevel(appointment);
 		int allocPrefLevel = getPreferenceLevel(allocatedAppointment);
-		if (prefLevel > 0) {
+		if (prefLevel >= 0) {
 			if (prefLevel <= allocPrefLevel) {
 				return true;
 			}
@@ -103,7 +114,7 @@ public class PatientAgent extends Agent {
 		ServiceDescription templateSd = new ServiceDescription();
 		templateSd.setType(serviceType);
 		template.addServices(templateSd);
-	
+
 		SearchConstraints sc = new SearchConstraints();
 		addBehaviour(new SubscriptionInitiator(this,
 				DFService.createSubscriptionMessage(this, getDefaultDF(),

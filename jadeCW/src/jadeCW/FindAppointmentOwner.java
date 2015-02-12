@@ -10,20 +10,20 @@ public class FindAppointmentOwner extends Behaviour {
 	private PatientAgent patient;
 	private AID serviceProvider;
 	private boolean informed = false;
-	
-	public FindAppointmentOwner() {
-		patient = (PatientAgent) myAgent;
-		serviceProvider = patient.getServiceProvider();
-	}
 
 	@Override
 	public void action() {
-		String preferedAppointment = patient.getMorePreferedAppointment();
-		if (preferedAppointment != null) {
+		patient = (PatientAgent) myAgent;
+		serviceProvider = patient.getServiceProvider();
+		if (serviceProvider != null && patient.hasAppointment()
+				&& patient.getMorePreferedAppointment() != null) {
 			if (!informed) {
-				requestAppointment(preferedAppointment);
+				findOwner(patient.getMorePreferedAppointment());
+			}
+			ACLMessage msg = patient.blockingReceive();
+			if (msg != null) {
 				try {
-					receiveResponse(preferedAppointment);
+					receiveResponse(patient.getMorePreferedAppointment(), msg);
 				} catch (UnreadableException e) {
 					e.printStackTrace();
 				}
@@ -36,34 +36,31 @@ public class FindAppointmentOwner extends Behaviour {
 		return informed;
 	}
 
-	private void requestAppointment(String preferedAppointment) {
+	private void findOwner(String preferedAppointment) {
 		ACLMessage msg = new ACLMessage(ACLMessage.QUERY_IF);
 		msg.setContent(preferedAppointment);
 		msg.addReceiver(serviceProvider);
+		System.out.println(patient.getPatientState()
+				+ " queries for the owner of prefered appointment "
+				+ preferedAppointment);
 		patient.send(msg);
-		System.out.println(patient.getLocalName()
-				+ " requests for prefered appointment " + preferedAppointment);
 	}
 
-	private void receiveResponse(String preferedAppointment)
+	private void receiveResponse(String preferedAppointment, ACLMessage msg)
 			throws UnreadableException {
-		ACLMessage msg = patient.receive();
-		if (msg != null) {
-			if (msg.getPerformative() == ACLMessage.INFORM
-					&& msg.getSender().equals(patient.getServiceProvider())) {
-				informed = true;
-				AID owner = (AID) msg.getContentObject();
-				if (!msg.getContent().isEmpty()) {
-					System.out.println(msg.getContent());
-				} else {
-					patient.setPreferedAppointmentOwner(owner);
-					System.out.println(owner.getLocalName()
-							+ " is the owner of appointment "
-							+ preferedAppointment);
-				}
+		if (msg.getPerformative() == ACLMessage.INFORM
+				&& msg.getSender().equals(patient.getServiceProvider())) {
+			AID owner = (AID) msg.getContentObject();
+			if (msg.getContent().equals("appointment:unknown")) {
+				System.out.println(msg.getContent());
+			} else {
+				patient.setPreferedAppointmentOwner(owner);
+				System.out
+						.println(patient.getPatientState() + " received that " + owner.getLocalName()
+								+ " is the owner of appointment "
+								+ preferedAppointment);
 			}
-		} else {
-			block();
+			informed = true;
 		}
 	}
 

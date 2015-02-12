@@ -9,14 +9,10 @@ import jade.lang.acl.ACLMessage;
 public class RepondToQuery extends CyclicBehaviour{
 
 	private HospitalAgent hospital;
-	
-	public RepondToQuery() {
-		hospital = (HospitalAgent) myAgent;
-	}
 
 	@Override
 	public void action() {
-		
+		hospital = (HospitalAgent) myAgent;
 		ACLMessage msg = hospital.receive();
 		if (msg != null) {
 			if (msg.getPerformative() == ACLMessage.QUERY_IF) {
@@ -37,7 +33,7 @@ public class RepondToQuery extends CyclicBehaviour{
 		String appointment = msg.getContent();
 		AID owner = hospital.getOwner(appointment);
 		if (owner == null) {
-			reply.setContent("appointment unknown");
+			reply.setContent("appointment:unknown");
 		} else {
 			reply.setContentObject(owner);
 		}

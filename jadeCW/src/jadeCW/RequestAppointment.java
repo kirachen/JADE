@@ -7,17 +7,17 @@ public class RequestAppointment extends Behaviour {
 	private PatientAgent patient;
 	private boolean waitingForResponse = false;
 	private boolean requested = false;
-	
-	public RequestAppointment() {
-		patient = (PatientAgent) myAgent;
-	}
 
 	@Override
 	public void action() {
+		patient = (PatientAgent) myAgent;
 		if (patient.getServiceProvider() != null && !patient.hasAppointment()) {
 			if (!waitingForResponse) {
 				requestAppointment();
-				receiveResponse();
+			}
+			ACLMessage msg = patient.receive();
+			if (msg != null) {
+				receiveResponse(msg);
 			}
 		}
 	}
@@ -27,20 +27,17 @@ public class RequestAppointment extends Behaviour {
 		return requested;
 	}
 
-	private void receiveResponse() {
-		ACLMessage msg = patient.receive();
+	private void receiveResponse(ACLMessage msg) {
 		if (msg != null) {
 			if (msg.getPerformative() == ACLMessage.AGREE && msg.getSender().equals(patient.getServiceProvider())) {
 				String appointment = msg.getContent();
 				patient.allocateAppointment(appointment);
-				System.out.println(patient.getLocalName()
-						+ " has been allocated with an appointment "
+				System.out.println(patient.getPatientState()
+						+ " has been allocated with appointment "
 						+ appointment);
 				waitingForResponse = false;
 				requested = true;
 			}
-		} else {
-			block();
 		}
 	}
 
@@ -48,8 +45,8 @@ public class RequestAppointment extends Behaviour {
 		waitingForResponse = true;
 		ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
 		msg.addReceiver(patient.getServiceProvider());
-		patient.send(msg);
-		System.out.println(patient.getLocalName()
+		System.out.println(patient.getPatientState()
 				+ " requests for available appointment");
+		patient.send(msg);
 	}
 }

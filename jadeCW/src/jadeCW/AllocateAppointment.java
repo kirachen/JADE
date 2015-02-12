@@ -10,12 +10,9 @@ public class AllocateAppointment extends CyclicBehaviour {
 
 	HospitalAgent hospital;
 	
-	public AllocateAppointment() {
-		hospital = (HospitalAgent) myAgent;
-	}
-
 	@Override
 	public void action() {
+		hospital = (HospitalAgent) myAgent;
 		ACLMessage msg = hospital.receive();
 		if (msg != null) {
 			if (msg.getPerformative() == ACLMessage.REQUEST) {
@@ -28,17 +25,17 @@ public class AllocateAppointment extends CyclicBehaviour {
 
 	private void processAppointmentRequest(ACLMessage msg) {
 		ACLMessage reply = msg.createReply();
+		AID patient = msg.getSender();
 		if (hospital.hasAvailableAppointment()) {
 			List<String> availableAppointments = hospital
 					.getAvailableAppointments();
 			String availableAppointment = availableAppointments.get(0);
 			reply.setPerformative(ACLMessage.AGREE);
 			reply.setContent(availableAppointment);
-			AID patient = msg.getSender();
 			hospital.allocateAppointment(availableAppointment, patient);
 			System.out.println(hospital.getLocalName()
 					+ " has allocated appointment " + availableAppointment
-					+ " to " + patient);
+					+ " to " + patient.getLocalName());
 		} else {
 			reply.setPerformative(ACLMessage.REFUSE);
 			System.out.println(hospital.getLocalName()

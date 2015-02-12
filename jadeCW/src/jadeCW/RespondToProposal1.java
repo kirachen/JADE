@@ -10,12 +10,9 @@ public class RespondToProposal1 extends CyclicBehaviour {
 
 	private PatientAgent patient;
 
-	public RespondToProposal1() {
-		patient = (PatientAgent) myAgent;
-	}
-
 	@Override
 	public void action() {
+		patient = (PatientAgent) myAgent;
 		ACLMessage proposal = patient.receive();
 		if (proposal != null) {
 			if (proposal.getPerformative() == ACLMessage.PROPOSE) {
@@ -24,7 +21,7 @@ public class RespondToProposal1 extends CyclicBehaviour {
 				if (patient.isMorePrefered(proposedAppointment)) {
 					reply.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
 					reply.setContent(patient.getAllocatedAppointment());
-					System.out.println(patient.getLocalName()
+					System.out.println(patient.getPatientState()
 							+ " accepting proposal for swapping with "
 							+ proposal.getSender().getLocalName()
 							+ " for appointment " + proposedAppointment);
@@ -43,6 +40,8 @@ public class RespondToProposal1 extends CyclicBehaviour {
 					e.printStackTrace();
 				}
 			}
+		} else {
+			block();
 		}
 	}
 
@@ -51,7 +50,7 @@ public class RespondToProposal1 extends CyclicBehaviour {
 		ACLMessage info = new ACLMessage(ACLMessage.INFORM);
 		info.setContentObject(preferedAppointmentOwner);
 		info.addReceiver(patient.getServiceProvider());
-		System.out.println(patient.getLocalName() + " informing hospital for swapping");
+		System.out.println(patient.getPatientState() + " informing hospital for swapping");
 		patient.send(info);
 	}
 
